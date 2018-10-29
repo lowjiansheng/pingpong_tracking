@@ -1,9 +1,15 @@
 mulReader = VideoReader('vid1.mp4');
 lenVideo = mulReader.Duration;
 
+totalNumFrames = floor(lenVideo * mulReader.FrameRate);
 % loop through the entire video to apply lucas kanade and harris corner detector.
 curFrameNum = 1;
 while hasFrame(mulReader)
+    % Will have error at the last frame trying to fetch last frame's next
+    % frame.
+    if curFrameNum == totalNumFrames
+        break
+    end
     vidFrame = readFrame(mulReader);
     vidFrameNext = readFrame(mulReader);
     % first use Harris corner detector to detect for good features.

@@ -7,8 +7,9 @@
 % Reading the video file.
 mulReader = VideoReader('vid1.mp4');
 lenVideo = mulReader.Duration;
-totalNumFrames = floor(lenVideo * mulReader.FrameRate);
-curFrameNum = 1;
+totalNumFrames = floor(lenVideo * mulReader.FrameRate)
+% ball only appears after frame 10.
+curFrameNum = 10;
 
 % HARRIS CORNER DETECTOR. 
 % Get top 200 corners.
@@ -74,20 +75,25 @@ value_threshold = sorted_eigmin(200,1);
 % getting only the lowest 200 eigen value positions
 [row_index, col_index] = find(eig_min >= value_threshold);
 % pos_lowest_eig stores the position index of the corners of the image.
-pos_lowest_eig = [row_index * 7, col_index * 7];
+pos_lowest_eig = [row_index * 7, col_index * 7]
 % END HARRIS CORNER DETECTOR.
+debugger = 0;
 
-curFrameNum = 1;
 while hasFrame(mulReader)
     % Error at last frame trying to fetch last frame's next frame.
     if curFrameNum == totalNumFrames
         break
     end  
+    vidFrameNext = readFrame(mulReader);
+    pic_grey_next = double(rgb2gray(vidFrameNext));
     % Loop through all the windows of the corners and find their next
     % position according to LK tracker.
     for x = 1 : size(pos_lowest_eig, 1)
         window_x = pos_lowest_eig(x, 1);
         window_y = pos_lowest_eig(x, 2);
+        if isnan(window_x) || isnan(window_y)
+            continue
+        end
         if window_x + 6 > size(pic_grey, 2) || window_x - 6 < 0
             continue
         end
@@ -95,10 +101,10 @@ while hasFrame(mulReader)
             continue
         end
         initial_x = window_x - 6;
-        initial_y = window_x + 6;
+        initial_y = window_y + 6;
         % Calculating Z matrix
         neighbour_ix = Ix_matrix(initial_x : window_x + 6, initial_y : window_y + 6);
-        neighbour_iy = Iy_matrix(initial_x : window_y + 6, initial_y : window_y + 6); 
+        neighbour_iy = Iy_matrix(initial_x : window_x + 6, initial_y : window_y + 6);
         ix_square = (neighbour_ix .* neighbour_ix);
         S_ix_square = sum(ix_square, 'all');
         ix_iy = (neighbour_ix .* neighbour_iy);
@@ -109,20 +115,23 @@ while hasFrame(mulReader)
               S_ix_iy S_iy_iy];
           
         % Calculate b matrix. Will have to read the next frame.
-        vidFrameNext = readFrame(mulReader);
-        pic_grey_next = double(rgb2gray(vidFrameNext));
-        
         window_current_frame = pic_grey(initial_x : window_x + 6, initial_y : window_y + 6);
         window_next_frame = pic_grey_next(initial_x : window_x + 6, initial_y : window_y + 6);
-        b = [sum((window_current_frame - window_next_frame) * neighbour_ix, 'all');
-                sum((window_current_frame - window_next_frame) * neighbour_iy, 'all')];
+        % size(window_current_frame - window_next_frame)
+        % size(neighbour_ix)
+        b = [sum((window_current_frame - window_next_frame) * neighbour_ix.', 'all');
+                sum((window_current_frame - window_next_frame) * neighbour_iy.', 'all')];
         d_window = inv(Z) * b;
         % with dx, dy computed, will put in the new values into
-        % pos_lowest_eig
-        pos_lowest_eig(x, 1) = pos_lowest_eig(x, 1) + d_window(1,1);
-        pos_lowest_eig(x, 2) = pos_lowest_eig(x, 2) + d_window(2,1);
+        % pos_lowest_eig. 
+        % note(lowjiansheng): The value is being floored, this might
+        % introduce some error to the solution.
+        pos_lowest_eig(x, 1) = floor(pos_lowest_eig(x, 1) + d_window(1,1));
+        pos_lowest_eig(x, 2) = floor(pos_lowest_eig(x, 2) + d_window(2,1));
     end
     pic_grey = pic_grey_next;
-    break
+    debugger = debugger + 1
+
 end
+pos_lowest_eig
 

@@ -7,14 +7,28 @@
 % Reading the video file.
 mulReader = VideoReader('vid1.mp4');
 lenVideo = mulReader.Duration;
+heightVideo = mulReader.Height;
+widthVideo = mulReader.Width;
 totalNumFrames = floor(lenVideo * mulReader.FrameRate)
 % ball only appears after frame 10.
-curFrameNum = 10;
+
+% Get background image
+backgroundImage = uint8(zeros(heightVideo, widthVideo, 3));
+curFrameNum = 1;
+while hasFrame(mulReader)
+    vidFrame = readFrame(mulReader);
+    % vidFrame is a hxwx3 rgb array
+    backgroundImage = ((curFrameNum - 1) / curFrameNum) * backgroundImage + (1 / curFrameNum) * vidFrame;
+    curFrameNum = curFrameNum + 1;
+end 
+
+backgroundImage = round(backgroundImage);
 
 % HARRIS CORNER DETECTOR. 
 % Get top 200 corners.
+mulReader.CurrentTime = 0.05;
 vidFrame = readFrame(mulReader);
-pic_grey = double(rgb2gray(vidFrame));
+pic_grey = double(rgb2gray(vidFrame - backgroundImage));
 
 % PADDING FOR X coordinate offset: 
 pic_x_offset = pic_grey(:, 2:end);
@@ -71,21 +85,32 @@ for x = 1 : floor(size(pic_grey , 1) / 7)
 end
 
 sorted_eigmin = sort(eig_min(:), 'descend');
-value_threshold = sorted_eigmin(200,1);
+value_threshold = sorted_eigmin(400,1);
 % getting only the lowest 200 eigen value positions
 [row_index, col_index] = find(eig_min >= value_threshold);
 % pos_lowest_eig stores the position index of the corners of the image.
 pos_lowest_eig = [row_index * 7, col_index * 7]
 % END HARRIS CORNER DETECTOR.
 debugger = 0;
+figH = figure;
+imshow(pic_grey, [])
+for x = 1 : size(row_index)
+    if isnan(pos_lowest_eig(x,1)) || isnan(pos_lowest_eig(x,2))
+        continue
+    end
+    rectangle('Position', [pos_lowest_eig(x,2) - 6 , pos_lowest_eig(x,1) - 6, 13, 13], 'EdgeColor', 'r');
+end
+print(figH, '-djpeg', num2str(debugger));
 
+mulReader.CurrentTime = 0.1;
 while hasFrame(mulReader)
+    figH = figure;
     % Error at last frame trying to fetch last frame's next frame.
     if curFrameNum == totalNumFrames
         break
     end  
     vidFrameNext = readFrame(mulReader);
-    pic_grey_next = double(rgb2gray(vidFrameNext));
+    pic_grey_next = double(rgb2gray(vidFrameNext - backgroundImage));
     % Loop through all the windows of the corners and find their next
     % position according to LK tracker.
     for x = 1 : size(pos_lowest_eig, 1)
@@ -125,13 +150,22 @@ while hasFrame(mulReader)
         % with dx, dy computed, will put in the new values into
         % pos_lowest_eig. 
         % note(lowjiansheng): The value is being floored, this might
-        % introduce some error to the solution.
+        % introduce some inconsistencies to the solution.
         pos_lowest_eig(x, 1) = floor(pos_lowest_eig(x, 1) + d_window(1,1));
         pos_lowest_eig(x, 2) = floor(pos_lowest_eig(x, 2) + d_window(2,1));
     end
     pic_grey = pic_grey_next;
     debugger = debugger + 1
-
+    
+    % display frame together with the trackers
+    imshow(pic_grey, [])
+    for x = 1 : size(row_index)
+        if isnan(pos_lowest_eig(x,1)) || isnan(pos_lowest_eig(x,2))
+            continue
+        end
+        rectangle('Position', [pos_lowest_eig(x,2) - 6 , pos_lowest_eig(x,1) - 6, 13, 13], 'EdgeColor', 'r');
+    end  
+    print(figH, '-djpeg', num2str(debugger));
 end
-pos_lowest_eig
+pos_lowest_eig;
 

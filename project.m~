@@ -9,10 +9,11 @@ mulReader = VideoReader('vid1.mp4');
 lenVideo = mulReader.Duration;
 totalNumFrames = floor(lenVideo * mulReader.FrameRate)
 % ball only appears after frame 10.
-curFrameNum = 10;
+% curFrameNum = 30;
 
 % HARRIS CORNER DETECTOR. 
 % Get top 200 corners.
+mulReader.CurrentTime = 0.05;
 vidFrame = readFrame(mulReader);
 pic_grey = double(rgb2gray(vidFrame));
 
@@ -71,15 +72,26 @@ for x = 1 : floor(size(pic_grey , 1) / 7)
 end
 
 sorted_eigmin = sort(eig_min(:), 'descend');
-value_threshold = sorted_eigmin(200,1);
+value_threshold = sorted_eigmin(400,1);
 % getting only the lowest 200 eigen value positions
 [row_index, col_index] = find(eig_min >= value_threshold);
 % pos_lowest_eig stores the position index of the corners of the image.
 pos_lowest_eig = [row_index * 7, col_index * 7]
 % END HARRIS CORNER DETECTOR.
 debugger = 0;
+figH = figure;
+imshow(pic_grey, [])
+for x = 1 : size(row_index)
+    if isnan(pos_lowest_eig(x,1)) || isnan(pos_lowest_eig(x,2))
+        continue
+    end
+    rectangle('Position', [pos_lowest_eig(x,2) - 6 , pos_lowest_eig(x,1) - 6, 13, 13], 'EdgeColor', 'r');
+end
+print(figH, '-djpeg', num2str(debugger));
+
 
 while hasFrame(mulReader)
+    figH = figure;
     % Error at last frame trying to fetch last frame's next frame.
     if curFrameNum == totalNumFrames
         break
@@ -91,8 +103,8 @@ while hasFrame(mulReader)
     for x = 1 : size(pos_lowest_eig, 1)
         window_x = pos_lowest_eig(x, 1);
         window_y = pos_lowest_eig(x, 2);
-        if isnan(window || window_y IsNan
-            
+        if isnan(window_x) || isnan(window_y)
+            continue
         end
         if window_x + 6 > size(pic_grey, 2) || window_x - 6 < 0
             continue
@@ -125,14 +137,22 @@ while hasFrame(mulReader)
         % with dx, dy computed, will put in the new values into
         % pos_lowest_eig. 
         % note(lowjiansheng): The value is being floored, this might
-        % introduce some error to the solution.
+        % introduce some inconsistencies to the solution.
         pos_lowest_eig(x, 1) = floor(pos_lowest_eig(x, 1) + d_window(1,1));
         pos_lowest_eig(x, 2) = floor(pos_lowest_eig(x, 2) + d_window(2,1));
     end
     pic_grey = pic_grey_next;
     debugger = debugger + 1
-    if debugger == 14
-        pos_lowest_eig
-    end
+    
+    % display frame together with the trackers
+    imshow(pic_grey, [])
+    for x = 1 : size(row_index)
+        if isnan(pos_lowest_eig(x,1)) || isnan(pos_lowest_eig(x,2))
+            continue
+        end
+        rectangle('Position', [pos_lowest_eig(x,2) - 6 , pos_lowest_eig(x,1) - 6, 13, 13], 'EdgeColor', 'r');
+    end  
+    print(figH, '-djpeg', num2str(debugger));
 end
+pos_lowest_eig;
 

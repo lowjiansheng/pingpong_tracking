@@ -9,7 +9,7 @@ mulReader = VideoReader('vid1.mp4');
 lenVideo = mulReader.Duration;
 heightVideo = mulReader.Height;
 widthVideo = mulReader.Width;
-totalNumFrames = floor(lenVideo * mulReader.FrameRate)
+totalNumFrames = floor(lenVideo * mulReader.FrameRate);
 % ball only appears after frame 10.
 
 % Get background image
@@ -102,7 +102,10 @@ for x = 1 : size(row_index)
 end
 print(figH, '-djpeg', num2str(debugger));
 
-mulReader.CurrentTime = 0.1;
+mulReader.CurrentTime = 0.05;
+pointTracker = vision.PointTracker;
+initialize(pointTracker,pos_lowest_eig, pic_grey);
+
 while hasFrame(mulReader)
     figH = figure;
     % Error at last frame trying to fetch last frame's next frame.
@@ -111,6 +114,8 @@ while hasFrame(mulReader)
     end  
     vidFrameNext = readFrame(mulReader);
     pic_grey_next = double(rgb2gray(vidFrameNext - backgroundImage));
+    [points, validity] = pointTracker(pic_grey_next);
+    points
     % Loop through all the windows of the corners and find their next
     % position according to LK tracker.
     for x = 1 : size(pos_lowest_eig, 1)

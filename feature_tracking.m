@@ -40,48 +40,6 @@ end
 num_rows = size(foreground, 1);
 num_columns = size(foreground, 2);
 
-%{
-% We keep a count of each pixel intensity so that we can find the xth
-% percentile to set a threshold
-pixel_intensity_count = zeros(1, 256);
-for frame = 1:num_frames
-    for i = 1:num_rows
-        for j = 1:num_columns
-            pixel_value = foreground(i, j, frame);
-            % because matlab is zero idx
-            pixel_intensity_count(pixel_value + 1) =  pixel_intensity_count(pixel_value + 1) + 1;
-        end
-    end
-end
-
-%{
-identify threshold by using percentile of pixel intensity counts
-we identify threshold from all frames because there are certain frames
-whereby there is no ball- we do not want false positives in those cases
-
-we set the threshold to be a lower percentile for now as my theory is that
-there exists a large number of dark pixels in frames without ball
-%}
-running_sum = zeros(1, 256);
-running_sum(1) = pixel_intensity_count(1);
-for i = 2:256
-    running_sum(i) = running_sum(i-1) + pixel_intensity_count(i);
-end
-
-
-% Trying to find a threshold_intensity by using percentile
-percentile = 75;
-threshold_count = prctile(running_sum, percentile);
-threshold_intensity = -1; % dummy value
-for i = 1:256
-    if running_sum(i) >= threshold_count
-        threshold_intensity = i;
-        break;
-    end
-end
-assert(threshold_intensity ~= -1)
-%}
-
 % Hard threshold by manual selection
 threshold_intensity_arr = [150, 0, 0];
 threshold_intensity = 147;

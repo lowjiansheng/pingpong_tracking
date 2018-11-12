@@ -1,4 +1,4 @@
 *.mp4
 *.asv
-*.csv
+trajectory_*.csv
 *.m~

@@ -5,6 +5,8 @@ classdef Camera < handle
     properties
         axes % Row-wise
         position
+        calibration_mat
+        f_len
     end
     
     methods
@@ -23,15 +25,6 @@ classdef Camera < handle
         
         function output = getOpticalAxis(obj)
             output = obj.axes(3,:);
-        end
-        
-        function output = getPlotCoordinates(obj)
-            output = [obj.getHorizontalAxis()+obj.position'
-                    obj.position'
-                    obj.getVerticalAxis()+obj.position'
-                    obj.position'
-                    obj.getOpticalAxis()+obj.position'
-                    obj.position'];
         end
         
         function output = getOpticalAxisPlotCoordinates(obj)
@@ -54,6 +47,15 @@ classdef Camera < handle
             if exist('new_origin_from_old_origin', 'var')
                 obj.position = obj.position + new_origin_from_old_origin;
             end
+        end
+        
+        function setCalibrationMatrix(obj, calibration_mat)
+            obj.calibration_mat = calibration_mat;
+            obj.f_len = (obj.calibration_mat(1,1) + obj.calibration_mat(2,2))/2;
+        end
+        
+        function o = getFLen(obj)
+            o = obj.f_len;
         end
     end
 end

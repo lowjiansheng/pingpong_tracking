@@ -1,4 +1,4 @@
-function Visualize3DMat(mat,linespec)
+function visualize(mat,linespec)
 %VISUALIZE3DMAT Summary of this function goes here
 %   Detailed explanation goes here
 

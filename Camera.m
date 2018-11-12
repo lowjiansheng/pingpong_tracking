@@ -7,6 +7,7 @@ classdef Camera < handle
         position
         calibration_mat
         f_len
+        offsets
     end
     
     methods
@@ -52,10 +53,15 @@ classdef Camera < handle
         function setCalibrationMatrix(obj, calibration_mat)
             obj.calibration_mat = calibration_mat;
             obj.f_len = (obj.calibration_mat(1,1) + obj.calibration_mat(2,2))/2;
+            obj.offsets = obj.calibration_mat(1:2,3);
         end
         
-        function o = getFLen(obj)
-            o = obj.f_len;
+        function output = img_pt2dir_vec(obj, img_pts)
+%             Assume img_pts are in the form of N x 2 matrix where the 2nd
+%             dimension are x and y.
+            offset_img_pts = img_pts - obj.offsets';
+            dir_vecs = [offset_img_pts, zeros(size(img_pts,1), 1)+obj.f_len];
+            output = (obj.axes'*dir_vecs')';
         end
     end
 end

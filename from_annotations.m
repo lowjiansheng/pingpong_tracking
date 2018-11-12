@@ -47,28 +47,8 @@ for camera_index=1:3
     cameras{camera_index}.setCalibrationMatrix(cams_cal_mat(:,:,camera_index));
 end
 
-% No change in coordinate system yet
-new_coord_system = [ 1 0 0; 0 1 0; 0 0 1];
-
 % figure % Uncomment if want new figure for every run else reuse figure  
-for camera_index=1:3    
-    cameras{camera_index}.changeCoordinateSystem(new_coord_system');
-    camera_plot = num2cell(cameras{camera_index}.getOpticalAxisPlotCoordinates(), 1);
-    plot3(camera_plot{:}, 'b')
-    hold on
-
-    camera_plot = num2cell(cameras{camera_index}.getVerticalAxisPlotCoordinates(), 1);
-    plot3(camera_plot{:}, 'g')
-    
-    camera_plot = num2cell(cameras{camera_index}.getHorizontalAxisPlotCoordinates(), 1);
-    plot3(camera_plot{:}, 'r')
-    text(cameras{camera_index}.position(1),...
-        cameras{camera_index}.position(2),...
-        cameras{camera_index}.position(3),...
-        strcat('cam',int2str(camera_index)))
-end
-grid on
-
+showCameras(cameras, 1);
 
 for traj_index=1:size(FileList,1)
 %     Each row represents a trajectory.
@@ -82,6 +62,7 @@ for traj_index=1:size(FileList,1)
         coords_table = readtable(coords_filename, opts);
         coords_tables{camera_index} = coords_table;
     end
+    coords_tables = cleanData(coords_tables);
     
 %     Do the fancy shitzos here
     trajs = Estimate3DCoordinates(cameras{1}, ...
@@ -94,24 +75,15 @@ for traj_index=1:size(FileList,1)
     traj_2 = trajs(:,:,2);
     traj_3 = trajs(:,:,3);
     traj_4 = trajs(:,:,4);
+    visualize(traj_1, 'r')
+    visualize(traj_2, 'g')   
+    visualize(traj_3, 'b')
+    visualize(traj_4, 'm')
+
     
-    traj_4 = cat(2, coords_tables{1}{:,{'undistort_x', 'undistort_y'}}* 0.001, zeros(size(traj_1,1), 1)+ 0.1);
-    
-    traj_table = array2table(traj);
-%     Visualize3DMat(traj_4, 'r')
-%     traj_plot1 = num2cell(traj_1, 1);
-%     traj_plot2 = num2cell(traj_2, 1);    
-%     traj_plot3 = num2cell(traj_3, 1);   
-%     traj_plot4 = num2cell(traj_4, 1);
-%     
-%     plot3(traj_plot1{:}, 'r');    
-%     plot3(traj_plot2{:}, 'g');
-%     plot3(traj_plot3{:}, 'b');
-%     plot3(traj_plot4{:}, 'y');
-%     
+    traj_table = array2table(traj_4);
     traj_table.Properties.VariableNames = {'x', 'y', 'z'};
     writetable(traj_table, strcat('trajectory_', int2str(traj_index), '.csv'));
-    break
 end
 
 hold off

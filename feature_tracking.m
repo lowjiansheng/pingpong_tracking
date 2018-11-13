@@ -1,14 +1,20 @@
-angle = 2;
+angle = 3;
 % Problems:
 % Angle 1: 7, 8 (stray ball), 10 (because of the woman's legs)
 % Angle 2:
 % (missing frames will be better cause I've decided to have different
 % intensity values)
-% 2 (5 missing frames), 4 (9 missing frames), 6 (9 missing frames), 9 (10
-% missing frames)
+% 2 (2 missing frames- move on), 4, (6 missing frames), 6 (9 missing frames)
 % 3, 5, 7, 8 (stray ball)
 % 10 (woman)
 % Angle 3: 
+% 1 (picking up something else- idk what yet. Hardcoded to ignore it)
+% 2 (I checked the values at frame 65- the annotated pixel is black)
+% 3, 5, 7, 8, 10 (stray ball)
+% 4, 9 (woman)
+% 6 (weirdly it's tracking the ball on the floor. I can resize my rect if
+% needed)
+
 % Strings
 file_path_vid = "./TestVideos/";
 mp4 = ".mp4";
@@ -21,10 +27,10 @@ files_angle2 = ["CAM2-GOPR0288-21180", "CAM2-GOPR0288-25413", "CAM2-GOPR0288-281
 files_angle3 = ["CAM3-GOPR0342-21108", "CAM3-GOPR0342-25341", "CAM3-GOPR0342-28065", "CAM3-GOPR0342-31415", "CAM3-GOPR0342-34168", "CAM3-GOPR0343-6479", "CAM3-GOPR0343-14117", "CAM3-GOPR0343-16754", "CAM3-GOPR0343-26692", "CAM3-GOPR0343-36320"];
 
 % Read in the video file
-pingpong = VideoReader(strcat(file_path_vid, files_angle2(10), mp4));
+pingpong = VideoReader(strcat(file_path_vid, files_angle3(10), mp4));
 
 % Read in annotation csv
-annotated_csv = csvread(strcat(file_path_annot, files_angle2(10), csv), 1, 0);
+annotated_csv = csvread(strcat(file_path_annot, files_angle3(10), csv), 1, 0);
 
 % Get background of video
 % We do so by averaging away the foreground (moving objects)
@@ -53,17 +59,17 @@ num_rows = size(foreground, 1);
 num_columns = size(foreground, 2);
 
 % Hard threshold by manual selection
-threshold_intensity_arr = [147, 80, 0];
+threshold_intensity_arr = [147, 80, 50];
 threshold_intensity = threshold_intensity_arr(angle);
 
 % the rectangles for each angle
 % each column entry represents the camera angle
-rect1_row_low = [200, 200]; rect1_row_high = [330, 330];
-rect1_col_low = [500, 570]; rect1_col_high = [950, 970];
-rect2_row_low = [100, 200]; rect2_row_high = [430, 600];
-rect2_col_low = [950, 890]; rect2_col_high = [1400, 1540];
-rect3_row_low = [330, 1]; rect3_row_high = [460, 1];
-rect3_col_low = [1030, 1]; rect3_col_high = [1160, 1];
+rect1_row_low = [200, 200, 290]; rect1_row_high = [330, 330, 710];
+rect1_col_low = [500, 570, 440]; rect1_col_high = [950, 970, 920];
+rect2_row_low = [100, 200, 150]; rect2_row_high = [430, 600, 450];
+rect2_col_low = [950, 890, 920]; rect2_col_high = [1400, 1540, 1370];
+rect3_row_low = [330, 1, 330]; rect3_row_high = [460, 1, 770];
+rect3_col_low = [1030, 1, 1]; rect3_col_high = [1160, 1, 440];
 
 % create array to store our coordinates of ball from feature tracker
 tracked_arr = zeros(num_frames, 3); 
@@ -79,6 +85,10 @@ for frame = 1:size(foreground, 3)
     
     for i = rect1_row_low(angle):rect1_row_high(angle)
         for j = rect1_col_low(angle):rect1_col_high(angle)
+            % very weird part- this particular area will screw things up
+            if (i == 650) && (j == 340) && (angle == 3)
+                continue 
+            end
             if foreground(i,j,frame) >= threshold_intensity
                 above_count = above_count + 1;
                 x_coord(above_count) = i;
@@ -89,6 +99,9 @@ for frame = 1:size(foreground, 3)
     
     for i = rect2_row_low(angle):rect2_row_high(angle)
         for j = rect2_col_low(angle):rect2_col_high(angle)
+            if (i == 650) && (j == 340) && (angle == 3)
+                continue 
+            end
             if foreground(i,j,frame) >= threshold_intensity
                 above_count = above_count + 1;
                 x_coord(above_count) = i;
@@ -99,6 +112,9 @@ for frame = 1:size(foreground, 3)
     
     for i = rect3_row_low(angle):rect3_row_high(angle)
         for j = rect3_col_low(angle):rect3_col_high(angle)
+            if (i == 650) && (j == 340) && (angle == 3)
+                continue 
+            end
             if foreground(i,j,frame) >= threshold_intensity
                 above_count = above_count + 1;
                 x_coord(above_count) = i;

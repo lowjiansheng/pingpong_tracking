@@ -7,8 +7,8 @@
 % Problem
 % Angle 1: 10 (woman)
 % Angle 3: 5 (fast ball), 9 (woman)
-angle = 1;
-vid = 10;
+angle = 3;
+vid = 2;
 
 % Strings
 file_path_vid = "./TestVideos/";
@@ -21,8 +21,6 @@ files_angle1 = ["CAM1-GOPR0333-21157", "CAM1-GOPR0333-25390", "CAM1-GOPR0333-281
 files_angle2 = ["CAM2-GOPR0288-21180", "CAM2-GOPR0288-25413", "CAM2-GOPR0288-28137", "CAM2-GOPR0288-31487", "CAM2-GOPR0288-34240", "CAM2-GOPR0289-6563", "CAM2-GOPR0289-14201", "CAM2-GOPR0289-16838", "CAM2-GOPR0289-26776", "CAM2-GOPR0289-36404"];
 files_angle3 = ["CAM3-GOPR0342-21108", "CAM3-GOPR0342-25341", "CAM3-GOPR0342-28065", "CAM3-GOPR0342-31415", "CAM3-GOPR0342-34168", "CAM3-GOPR0343-6479", "CAM3-GOPR0343-14117", "CAM3-GOPR0343-16754", "CAM3-GOPR0343-26692", "CAM3-GOPR0343-36320"];
 files = [files_angle1; files_angle2; files_angle3];
-
-disp(files(angle, vid));
 
 % Read in the video file
 pingpong = VideoReader(strcat(file_path_vid, files(angle, vid), mp4));
@@ -57,9 +55,8 @@ num_rows = size(foreground, 1);
 num_cols = size(foreground, 2);
 
 % Hard threshold by manual selection
-threshold_intensity_arr = [147, 50, 40];
-threshold_intensity = 50;
-% threshold_intensity = threshold_intensity_arr(angle);
+threshold_intensity_arr = [50, 50, 40];
+threshold_intensity = threshold_intensity_arr(angle);
 
 % Search space initialisation- 50 by 100 matrix
 int_row_low = [290 285 250];
@@ -155,10 +152,6 @@ for frame = 1:size(annotated_csv,1)
         num_correct_frames_unmarked = num_correct_frames_unmarked + 1;
     else
         diff = sqrt((annotated_csv(frame,2) - tracked_arr(frame,2))^2 + (annotated_csv(frame,3) - tracked_arr(frame,3))^2);
-        if (diff > 10)
-            disp("frame is: ");
-            disp(frame);
-        end
         sum_euclidean_dist = sum_euclidean_dist + diff;
         num_correct_frames_marked = num_correct_frames_marked + 1;
     end

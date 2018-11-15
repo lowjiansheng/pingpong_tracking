@@ -1,12 +1,14 @@
 % Record
 % Success
+% Angle 1: 1, 2, 3, 4, 5, 6, 7, 8, 9
 % Angle 2: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 (frame with woman shows greater
 % error, but still can track)
 % Angle 3: 1, 2, 4, 6 (stops tracking after ball flies off table), 3, 7, 8, 10
 % Problem
+% Angle 1: 10 (woman)
 % Angle 3: 5 (fast ball), 9 (woman)
-angle = 2;
-vid = 1;
+angle = 1;
+vid = 10;
 
 % Strings
 file_path_vid = "./TestVideos/";
@@ -20,11 +22,13 @@ files_angle2 = ["CAM2-GOPR0288-21180", "CAM2-GOPR0288-25413", "CAM2-GOPR0288-281
 files_angle3 = ["CAM3-GOPR0342-21108", "CAM3-GOPR0342-25341", "CAM3-GOPR0342-28065", "CAM3-GOPR0342-31415", "CAM3-GOPR0342-34168", "CAM3-GOPR0343-6479", "CAM3-GOPR0343-14117", "CAM3-GOPR0343-16754", "CAM3-GOPR0343-26692", "CAM3-GOPR0343-36320"];
 files = [files_angle1; files_angle2; files_angle3];
 
+disp(files(angle, vid));
+
 % Read in the video file
-pingpong = VideoReader(strcat(file_path_vid, files_angle2(vid), mp4));
+pingpong = VideoReader(strcat(file_path_vid, files(angle, vid), mp4));
 
 % Read in annotation csv
-annotated_csv = csvread(strcat(file_path_annot, files_angle2(vid), csv), 1, 0);
+annotated_csv = csvread(strcat(file_path_annot, files(angle, vid), csv), 1, 0);
 
 % Get background of video
 % We do so by averaging away the foreground (moving objects)
@@ -58,10 +62,10 @@ threshold_intensity = 50;
 % threshold_intensity = threshold_intensity_arr(angle);
 
 % Search space initialisation- 50 by 100 matrix
-int_row_low = [0 285 250];
-int_row_high = [0 335 300];
-int_col_low = [0 570 1265];
-int_col_high = [0 670 1365];
+int_row_low = [290 285 250];
+int_row_high = [340 335 300];
+int_col_low = [530 570 1265];
+int_col_high = [630 670 1365];
 
 row_low = int_row_low(angle);
 row_high = int_row_high(angle);

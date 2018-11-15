@@ -53,7 +53,7 @@ num_cols = size(foreground, 2);
 threshold_intensity_arr = [147, 80, 40];
 threshold_intensity = threshold_intensity_arr(angle);
 
-% Search space initialisation- 50 by 50 matrix
+% Search space initialisation- 50 by 100 matrix
 row_low = 250;
 row_high = 300;
 col_low = 1265;

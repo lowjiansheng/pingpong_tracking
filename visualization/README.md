@@ -1,4 +1,4 @@
-### Visualization Library
+## Visualization Library
 To visualize the 3D coordinates of our ping pong ball trajectory we are using the "vpython" library for it's ease of use and documentation. The code is written in python and documentation of the library can be found here: "http://www.glowscript.org/docs/VPythonDocs/index.html"
 
 ## Running the Program 

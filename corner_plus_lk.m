@@ -9,7 +9,7 @@
 % constantly redetect the points. 
 
 % Reading the video file and getting some initial metadata.
-mulReader = VideoReader('vid1.mp4');
+mulReader = VideoReader('vid3_2.mp4');
 lenVideo = mulReader.Duration;
 heightVideo = mulReader.Height;
 widthVideo = mulReader.Width;
@@ -30,10 +30,11 @@ mulReader.CurrentTime = 0.15;
 vidFrame = readFrame(mulReader);
 debugger = 1;
 pic_grey = double(rgb2gray(vidFrame - backgroundImage));
-
+figH = figure;
+imshow(pic_grey,[]);
 % Harris Corner Detector
 corners = detectMinEigenFeatures(pic_grey);
-corners = corners.selectStrongest(50).Location;
+corners = corners.selectStrongest(100).Location;
 pointImage = insertMarker(vidFrame ,corners,'+','Color','red');
 figH = figure;
 imshow(pointImage);
@@ -49,7 +50,7 @@ while hasFrame(mulReader)
     % Every 4 (arbitrary) frames will redo Harris Corner
     if mod(debugger, 3) == 0
         points = detectMinEigenFeatures(pic_grey);
-        points = points.selectStrongest(50).Location; 
+        points = points.selectStrongest(100).Location; 
         setPoints(pointTracker, points);
     else
         [points, validity] = pointTracker(pic_grey);

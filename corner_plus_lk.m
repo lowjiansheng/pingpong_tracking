@@ -34,35 +34,28 @@ pic_grey = double(rgb2gray(vidFrame - backgroundImage));
 % Harris Corner Detector
 corners = detectMinEigenFeatures(pic_grey);
 corners = corners.selectStrongest(50).Location;
+pointImage = insertMarker(vidFrame ,corners,'+','Color','red');
 figH = figure;
-
-imshow(pic_grey, [])
-for x = 1 : size(corners, 1)
-    rectangle('Position', [corners(x,1) , corners(x,2), 6, 6], 'EdgeColor', 'r');
-end
-print(figH, '-djpeg', num2str(debugger));
+imshow(pointImage);
 
 % Initialise for LK tracker
 pointTracker = vision.PointTracker('NumPyramidLevels', 6);
-initialize(pointTracker, min_pts, pic_grey);
+initialize(pointTracker, corners, pic_grey);
 
 while hasFrame(mulReader)
     debugger = debugger + 1;
     vidFrameNext = readFrame(mulReader);
     pic_grey = double(rgb2gray(vidFrameNext - backgroundImage));
     % Every 4 (arbitrary) frames will redo Harris Corner
-    if mod(debugger, 4) == 0
+    if mod(debugger, 3) == 0
         points = detectMinEigenFeatures(pic_grey);
-        points = points.selectStrongest(50).Location;
+        points = points.selectStrongest(50).Location; 
+        setPoints(pointTracker, points);
     else
         [points, validity] = pointTracker(pic_grey);
     end 
     % Visualising the points
-    figH = figure;
-    imshow(pic_grey, [])
-    for x = 1 : size(points,1)
-        rectangle('Position', [points(x,1), points(x,2), 6, 6], 'EdgeColor', 'r');
-    end
-    print(figH, '-djpeg', num2str(debugger));
+    pointImage = insertMarker(vidFrameNext, points,'+','Color','red');
+    imshow(pointImage);
 end
 

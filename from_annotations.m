@@ -83,7 +83,7 @@ for traj_index=1:size(FileList,1)
     
     traj_table = array2table(traj_4);
     traj_table.Properties.VariableNames = {'x', 'y', 'z'};
-    writetable(traj_table, strcat('trajectory_', int2str(traj_index), '.csv'));
+    writetable(traj_table, strcat('outputs/trajectory_', int2str(traj_index), '.csv'));
 end
 
 hold off

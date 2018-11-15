@@ -1,3 +1,8 @@
+% Record
+% Success
+% Angle 3: 1, 2, 4, 6 (stops tracking after ball flies off table), 3, 7, 8, 10
+% Problem
+% Angle 3: 5 (fast ball), 9 (woman)
 angle = 3;
 
 % Strings
@@ -13,10 +18,10 @@ files_angle3 = ["CAM3-GOPR0342-21108", "CAM3-GOPR0342-25341", "CAM3-GOPR0342-280
 files = [files_angle1; files_angle2; files_angle3];
 
 % Read in the video file
-pingpong = VideoReader(strcat(file_path_vid, files_angle3(10), mp4));
+pingpong = VideoReader(strcat(file_path_vid, files_angle3(1), mp4));
 
 % Read in annotation csv
-annotated_csv = csvread(strcat(file_path_annot, files_angle3(10), csv), 1, 0);
+annotated_csv = csvread(strcat(file_path_annot, files_angle3(1), csv), 1, 0);
 
 % Get background of video
 % We do so by averaging away the foreground (moving objects)
@@ -51,19 +56,19 @@ threshold_intensity = threshold_intensity_arr(angle);
 % Search space initialisation- 50 by 50 matrix
 row_low = 250;
 row_high = 300;
-col_low = 1290;
+col_low = 1265;
 col_high = 1365;
 
 % create array to store our coordinates of ball from feature tracker
 tracked_arr = zeros(num_frames, 3); 
-max_possible_num_of_pixels = 50 * 75;
+max_possible_num_of_pixels = 50 * 100;
 
 num_no_ball = 0;
 num_with_ball = 0;
 
 % collate info of all pixels that will has an intensity >= threshold
-for frame = 1:18%size(foreground, 3)
-    tracked_arr(frame, 1) = frame;
+for frame = 1:size(foreground, 3)
+    tracked_arr(frame, 1) = frame - 1;
     x_coord = zeros(1, max_possible_num_of_pixels);
     y_coord = zeros(1, max_possible_num_of_pixels);
     above_count = 0;
@@ -103,11 +108,9 @@ for frame = 1:18%size(foreground, 3)
     tracked_arr(frame, 3) = x_centroid_pos;
     
     % update displacement if necessary
-    if mod(num_with_ball, 3) == 0
-        x_displacement = (x_centroid_pos - tracked_arr(frame-1, 3)) * 2;
+    if num_with_ball >= 2
+        x_displacement = x_centroid_pos - tracked_arr(frame-1, 3);
         y_displacement = (y_centroid_pos - tracked_arr(frame-1, 2));
-        disp(x_displacement);
-        disp(y_displacement);
         row_low = row_low + x_displacement;
         row_low = max(row_low, 1);
         row_high = row_high + x_displacement;
@@ -138,7 +141,12 @@ for frame = 1:size(annotated_csv,1)
     elseif (annotated_csv(frame, 2) == 0) && (annotated_csv(frame,3) == 0) && (tracked_arr(frame, 2) == 0) && (tracked_arr(frame,3) == 0)
         num_correct_frames_unmarked = num_correct_frames_unmarked + 1;
     else
-        sum_euclidean_dist = sum_euclidean_dist + sqrt((annotated_csv(frame,2) - tracked_arr(frame,2))^2 + (annotated_csv(frame,3) - tracked_arr(frame,3))^2);
+        diff = sqrt((annotated_csv(frame,2) - tracked_arr(frame,2))^2 + (annotated_csv(frame,3) - tracked_arr(frame,3))^2);
+        if (diff > 10)
+            disp("frame is: ");
+            disp(frame);
+        end
+        sum_euclidean_dist = sum_euclidean_dist + diff;
         num_correct_frames_marked = num_correct_frames_marked + 1;
     end
 end
